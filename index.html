@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>6 LOTTERY · RN TEAM · AI PREDICTOR</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: #0b101a;
+            color: #e2e8f0;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* header */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: #0f172a;
+            border-bottom: 1px solid #1e2d45;
+            flex-shrink: 0;
+        }
+        .brand h1 {
+            font-size: 1.4rem;
+            font-weight: 500;
+            background: linear-gradient(145deg, #b0ccff, #3d7eff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .rn-badge {
+            background: #1f2e48;
+            color: #7aa9ff;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            font-weight: 500;
+            border: 1px solid #2d4b70;
+            font-size: 0.8rem;
+        }
+
+        /* main area - add bottom padding to avoid overlap with fixed buttons */
+        .main-area {
+            flex: 1;
+            min-height: 0;
+            background: #0f1a2a;
+            position: relative;
+            padding-bottom: 70px; /* space for fixed button row */
+        }
+
+        /* HACK content */
+        #hackContent {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            height: 100%;
+            overflow-y: auto;
+        }
+        @media (max-width: 640px) {
+            #hackContent {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+                padding: 0.8rem;
+            }
+        }
+
+        /* GAME content */
+        #gameContent {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: #0a0f18;
+        }
+        #gameFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        .prediction-float {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: #0e1a28f2;
+            backdrop-filter: blur(4px);
+            border: 1px solid #2f80ed;
+            color: white;
+            padding: 0.3rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 1000;
+            box-shadow: 0 6px 16px black;
+            pointer-events: none;
+        }
+        .badge-big { border-left: 5px solid #2f80ed; }
+        .badge-small { border-left: 5px solid #8b5cf6; }
+
+        /* cards */
+        .stat-card {
+            background: #132336;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            border: 1px solid #253f5a;
+            box-shadow: 0 8px 20px -10px #000000b0;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #b0ccf5;
+            margin-bottom: 0.8rem;
+            border-left: 4px solid #2f80ed;
+            padding-left: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        /* table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #1b3144;
+            color: #aac0e5;
+            font-weight: 500;
+            padding: 0.4rem 0.2rem;
+            border-bottom: 2px solid #2f80ed80;
+        }
+        td {
+            padding: 0.4rem 0.2rem;
+            text-align: center;
+            border-bottom: 1px solid #1e334a;
+        }
+        .color-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 8px;
+            margin-right: 4px;
+        }
+        .dot-red { background: #f28b82; box-shadow: 0 0 6px #f28b82; }
+        .dot-green { background: #81c995; box-shadow: 0 0 6px #81c995; }
+        .dot-violet { background: #c58af9; box-shadow: 0 0 6px #c58af9; }
+
+        /* prediction box */
+        .prediction-box {
+            background: #0f1f32;
+            border-radius: 2rem;
+            padding: 0.8rem 0.5rem;
+            text-align: center;
+            border: 1px solid;
+            margin-bottom: 0.8rem;
+        }
+        .prediction-box.big { border-color: #2f80ed; box-shadow: 0 0 12px #2f80ed40; }
+        .prediction-box.small { border-color: #8b5cf6; box-shadow: 0 0 12px #8b5cf640; }
+        .next-label { font-size: 0.65rem; letter-spacing: 1.5px; color: #9bb0d0; }
+        .next-value { font-size: 2.5rem; font-weight: 600; line-height: 1.1; }
+        .big .next-value { color: #2f80ed; }
+        .small .next-value { color: #8b5cf6; }
+        .confidence { font-size: 0.75rem; color: #a0b8d0; }
+        .winrate-badge {
+            background: #1e334a;
+            border-radius: 30px;
+            padding: 0.15rem 1rem;
+            display: inline-block;
+            margin-top: 0.2rem;
+            font-size: 0.7rem;
+            border: 1px solid #2f80ed;
+        }
+
+        /* stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+            margin: 0.8rem 0;
+        }
+        .stat-item {
+            background: #12273b;
+            border-radius: 0.8rem;
+            padding: 0.4rem 0;
+            text-align: center;
+            border: 1px solid #1f3d5a;
+        }
+        .stat-num {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #7aa9ff;
+        }
+        .stat-desc {
+            font-size: 0.6rem;
+            color: #90aaca;
+            text-transform: uppercase;
+        }
+
+        /* last result dots */
+        .dot-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.2rem;
+            margin: 0.8rem 0;
+        }
+        .dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.65rem;
+            border: 1px solid;
+        }
+        .dot.big { background: #173553; border-color: #2f80ed; color: #c0dcff; }
+        .dot.small { background: #282148; border-color: #8b5cf6; color: #e2d0ff; }
+
+        /* pattern list */
+        .pattern-list {
+            list-style: none;
+        }
+        .pattern-list li {
+            background: #102437;
+            margin: 0.4rem 0;
+            padding: 0.4rem 0.8rem;
+            border-radius: 40px;
+            border-left: 4px solid #2f80ed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+        .pattern-list li.active { background: #173f5c; border-left-color: #8b5cf6; }
+        .pattern-bias {
+            background: #1f3a54;
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.65rem;
+            color: #d0e2ff;
+        }
+
+        /* bottom buttons – FIXED FLOATING ROW always visible */
+        .button-row {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: #0f172a;
+            border-top: 1px solid #2d405c;
+            z-index: 2000;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .mode-btn {
+            background: transparent;
+            border: 2px solid #2d405c;
+            color: #a0bcdc;
+            padding: 0.6rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            text-transform: uppercase;
+            flex: 0 1 auto;
+            min-width: 120px;
+            text-align: center;
+        }
+        .mode-btn.active {
+            background: #2f80ed;
+            border-color: #2f80ed;
+            color: white;
+            box-shadow: 0 2px 8px #2f80ed70;
+        }
+        .mode-btn:last-child.active {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+        }
+
+        .hidden { display: none !important; }
+        .error-message {
+            color: #f87171;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+        .sync-note { font-size: 0.65rem; color: #4e6990; text-align: right; margin-top: 0.4rem; }
+    </style>
+</head>
+<body>
+    <!-- header -->
+    <div class="top-bar">
+        <div class="brand"><h1>6 LOTTERY · 30SEC AI</h1></div>
+        <div class="rn-badge">· RN TEAM </div>
+    </div>
+
+    <!-- main area with bottom padding for fixed buttons -->
+    <div class="main-area">
+        <!-- HACK content -->
+        <div id="hackContent">
+            <!-- left: live results -->
+            <div class="stat-card">
+                <div class="card-title">LIVE RESULTS</div>
+                <table id="resultsTable">
+                    <thead><tr><th>PERIOD</th><th>NUM</th><th>B/S</th><th>COLOUR</th></tr></thead>
+                    <tbody id="tableBody"><tr><td colspan="4" style="text-align:center;">loading...</td></tr></tbody>
+                </table>
+                <div class="sync-note" id="apiStatus">sync 30s · live API</div>
+            </div>
+
+            <!-- right: AI predictor -->
+            <div class="stat-card">
+                <div class="card-title">AI PREDICTION</div>
+                <!-- prediction box -->
+                <div id="predictionBox" class="prediction-box big">
+                    <div class="next-label">NEXT DRAW</div>
+                    <div class="next-value" id="predictionValue">-</div>
+                    <div class="confidence">confidence <span id="confidenceSpan">-</span></div>
+                    <span class="winrate-badge">WIN RATE <span id="winRateDisplay">0.0</span>%</span>
+                </div>
+
+                <!-- stats row -->
+                <div class="stats-row">
+                    <div class="stat-item"><span class="stat-num" id="longestWin">0</span><div class="stat-desc">Longest Win</div></div>
+                    <div class="stat-item"><span class="stat-num" id="longestLose">0</span><div class="stat-desc">Longest Lose</div></div>
+                    <div class="stat-item"><span class="stat-num" id="winRateStat">0%</span><div class="stat-desc">Win Rate</div></div>
+                    <div class="stat-item"><span class="stat-num" id="totalPreds">0</span><div class="stat-desc">Total Preds</div></div>
+                </div>
+
+                <!-- last 10 result dots (B/S sequence) -->
+                <div class="dot-row" id="dotContainer"></div>
+
+                <!-- pattern matrix (multiple patterns) -->
+                <div class="card-title" style="margin-top:0.4rem;">PATTERN MATRIX</div>
+                <ul class="pattern-list" id="patternList"><li>waiting for data...</li></ul>
+            </div>
+        </div>
+
+        <!-- GAME content -->
+        <div id="gameContent" class="hidden">
+            <iframe id="gameFrame" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" referrerpolicy="no-referrer" src="https://www.6win666.com/#/register?invitationCode=323371118709"></iframe>
+            <div id="floatBadge" class="prediction-float badge-big">⚡ -</div>
+        </div>
+    </div>
+
+    <!-- bottom buttons – FIXED FLOATING ROW (always visible) -->
+    <div class="button-row">
+        <button id="btnHack" class="mode-btn active">HACK</button>
+        <button id="btnGame" class="mode-btn">GAME</button>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- API CONFIG ----------
+            const apiUrl = "https://6lotteryapi.com/api/webapi/GetNoaverageEmerdList";
+            const requestData = {
+                pageSize: 10,
+                pageNo: 1,
+                typeId: 30,
+                language: 0,
+                random: "a0cb689596cc425c803668c594d6482e",
+                signature: "CE26F3EEBE1F7B5543A4567E586A64E1",
+                timestamp: 1758417216
+            };
+            const headers = {
+                "Content-Type": "application/json;charset=UTF-8",
+                "Accept": "application/json, text/plain, */*",
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOiIxNzU4NDE3MTgyIiwibmJmIjoiMTc1ODQxNzE4MiIsImV4cCI6IjE3NTg0MTg5ODIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL2V4cGlyYXRpb24iOiI5LzIxLzIwMjUgODoxMzowMiBBTSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFjY2Vzc19Ub2tlbiIsIlVzZXJJZCI6IjEwMjQ2OTkiLCJVc2VyTmFtZSI6Ijk1OTc5NDUxMTQyMCIsIlVzZXJQaG90byI6IjEiLCJOaWNrTmFtZSI6Ik1lbWJlck5OR0NQT0tPIiwiQW1vdW50IjoiMy45MCIsIkludGVncmFsIjoiMCIsIkxvZ2luTWFyayI6Ikg1IiwiTG9naW5UaW1lIjoiOS8yMS8yMDI1IDc6NDM6MDIgQU0iLCJMb2dpbklQQWRkcmVzcyI6IjEwMy4xNzIuMTgxLjU4IiwiRGJOdW1iZXIiOiIwIiwiSXN2YWxpZGF0b3IiOiIwIiwiS2V5Q29kZSI6Ijc3IiwiVG9rZW5UeXBlIjoiQWNjZXNzX1Rva2VuIiwiUGhvbmVUeXBlIjoiMSIsIlVzZXJUeXBlIjoiMCIsIlVzZXJOYW1lMiI6IiIsImlzcyI6Imp3dElzc3VlciIsImF1ZCI6ImxvdHRlcnlUaWNrZXQifQ.LnZTN0JCNWhhSUtrcHJQWkYwT3BQUGNhX2otMXkyLXdBUDUwU3F3VVVMUkE"
+            };
+
+            // ---------- STATE ----------
+            let lastResults = [];
+            let predictionHistory = [];          // stores { period, prediction, status, confidence }
+            let lastPrediction = null;            // { prediction, confidence, period (of the result used to make it) }
+            let lastProcessedPeriod = null;       // to avoid duplicate entries
+
+            // ---------- UTILS ----------
+            function numberToSB(num) {
+                return parseInt(num) <= 4 ? "S" : "B";
+            }
+
+            function getColorClass(col) {
+                if (col.toLowerCase().includes('violet')) return 'violet';
+                if (col.toLowerCase().includes('green')) return 'green';
+                return 'red';
+            }
+
+            // ---------- MULTI-ALGORITHM PREDICTION ENGINE ----------
+            function runAlgorithms(seq) {
+                const results = [];
+                if (seq.length < 3) return [];
+
+                // 1. Ultra-max (original)
+                const ultra = ultraPredict(seq);
+                results.push({ bias: ultra.prediction, weight: 1.5 });
+
+                // 2. Momentum (last6)
+                if (seq.length >= 6) {
+                    const last6 = seq.slice(-6);
+                    const big6 = last6.filter(s => s === 'B').length;
+                    if (big6 >= 5) results.push({ bias: 'B', weight: 1.2 });
+                    else if (big6 <= 1) results.push({ bias: 'S', weight: 1.2 });
+                }
+
+                // 3. Ratio pressure
+                const bigCnt = seq.filter(s => s === 'B').length;
+                const smallCnt = seq.filter(s => s === 'S').length;
+                if (bigCnt >= 8) results.push({ bias: 'S', weight: 1.3 });
+                else if (smallCnt >= 8) results.push({ bias: 'B', weight: 1.3 });
+
+                // 4. Recent bias
+                if (seq.length >= 10) {
+                    const first5 = seq.slice(0,5);
+                    const last5 = seq.slice(-5);
+                    const bigFirst = first5.filter(s => s === 'B').length;
+                    const bigLast = last5.filter(s => s === 'B').length;
+                    if (bigLast > bigFirst) results.push({ bias: 'B', weight: 1.0 });
+                    else if (bigLast < bigFirst) results.push({ bias: 'S', weight: 1.0 });
+                }
+
+                // 5. Cluster break
+                let streak = 1;
+                for (let i = seq.length-1; i > 0; i--) {
+                    if (seq[i] === seq[i-1]) streak++; else break;
+                }
+                if (streak >= 3) {
+                    const bias = seq[seq.length-1] === 'B' ? 'S' : 'B';
+                    results.push({ bias: bias, weight: 1.2 });
+                }
+
+                // 6. Equalization
+                if (Math.abs(bigCnt - smallCnt) >= 4) {
+                    const bias = bigCnt > smallCnt ? 'S' : 'B';
+                    results.push({ bias: bias, weight: 1.1 });
+                }
+
+                // 7. Alternation
+                if (seq.length >= 5) {
+                    const last5 = seq.slice(-5).join('');
+                    if (last5 === 'BSBSB' || last5 === 'SBSBS') {
+                        results.push({ bias: last5 === 'BSBSB' ? 'B' : 'S', weight: 1.1 });
+                    }
+                }
+
+                // 8. Simple trend
+                if (seq.length >= 3) {
+                    const last3 = seq.slice(-3);
+                    if (last3[0] === last3[1] && last3[1] === last3[2]) {
+                        const bias = last3[0] === 'B' ? 'S' : 'B';
+                        results.push({ bias: bias, weight: 1.0 });
+                    } else if (last3[0] !== last3[1] && last3[1] !== last3[2]) {
+                        results.push({ bias: last3[2], weight: 0.8 });
+                    }
+                }
+
+                return results;
+            }
+
+            function ultraPredict(results) {
+                let last2 = results.slice(-2).join("");
+                let last3 = results.slice(-3).join("");
+                let last4 = results.slice(-4).join("");
+                let last5 = results.slice(-5).join("");
+                let countB = results.filter(r=>"B"===r).length;
+                let countS = results.filter(r=>"S"===r).length;
+
+                let scoreB=0, scoreS=0;
+
+                if(last3==="BBB") scoreS+=5; if(last3==="SSS") scoreB+=5;
+                if(last4==="BBBB") scoreS+=5; if(last4==="SSSS") scoreB+=5;
+                if(last5==="BBBBB") scoreS+=5; if(last5==="SSSSS") scoreB+=5;
+
+                if(countB>countS) scoreS+=3; if(countS>countB) scoreB+=3;
+                if(countB>=8) scoreS+=5; if(countS>=8) scoreB+=5;
+
+                if(last2==="BB") scoreS+=2; if(last2==="SS") scoreB+=2;
+                if(last3==="BBS") scoreS+=2; if(last3==="SSB") scoreB+=2;
+
+                if(last5==="BSBSB") scoreS+=2; if(last5==="SBSBS") scoreB+=2;
+                if(last4==="BSBS") scoreS+=1; if(last4==="SBSB") scoreB+=1;
+
+                if(last3==="BSB" && countB>countS) scoreS+=1;
+                if(last3==="SBS" && countS>countB) scoreB+=1;
+                if(last5==="BSSBS" && countB>=3) scoreS+=1;
+                if(last5==="SBSBB" && countS>=3) scoreB+=1;
+
+                let prediction, confidence;
+                if(scoreB>scoreS){ 
+                    prediction="B"; 
+                    confidence=Math.min(95, Math.floor(scoreB/(scoreB+scoreS)*100)); 
+                }
+                else if(scoreS>scoreB){ 
+                    prediction="S"; 
+                    confidence=Math.min(95, Math.floor(scoreS/(scoreB+scoreS)*100)); 
+                }
+                else { 
+                    prediction=Math.random()>0.5?"B":"S"; 
+                    confidence=50; 
+                }
+                return {prediction, confidence};
+            }
+
+            function combineAlgorithms(seq) {
+                const algos = runAlgorithms(seq);
+                let scoreB = 0, scoreS = 0;
+                algos.forEach(a => {
+                    if (a.bias === 'B') scoreB += a.weight;
+                    else scoreS += a.weight;
+                });
+                let totalScore = scoreB + scoreS;
+                if (totalScore === 0) {
+                    const ultra = ultraPredict(seq);
+                    return { prediction: ultra.prediction, confidence: ultra.confidence, algos };
+                }
+                const confidence = Math.round((Math.max(scoreB, scoreS) / totalScore) * 100);
+                const prediction = scoreB > scoreS ? 'B' : (scoreS > scoreB ? 'S' : (Math.random() > 0.5 ? 'B' : 'S'));
+                return { prediction, confidence, algos };
+            }
+
+            function computeStats() {
+                let longestWin = 0, longestLose = 0, currentWin = 0, currentLose = 0;
+                let wins = 0;
+                predictionHistory.forEach(p => {
+                    if (p.status === 'Win') {
+                        wins++;
+                        currentWin++;
+                        currentLose = 0;
+                        if (currentWin > longestWin) longestWin = currentWin;
+                    } else {
+                        currentLose++;
+                        currentWin = 0;
+                        if (currentLose > longestLose) longestLose = currentLose;
+                    }
+                });
+                const total = predictionHistory.length;
+                const winRate = total > 0 ? ((wins / total) * 100).toFixed(1) : "0.0";
+                return { longestWin, longestLose, winRate, total };
+            }
+
+            function updateUI(data) {
+                const list = data?.data?.list;
+                if (!list || list.length === 0) {
+                    document.getElementById("tableBody").innerHTML = '<tr><td colspan="4" class="error-message">⛔ No live data – VPN may be required</td></tr>';
+                    document.getElementById("apiStatus").innerText = '⚠️ no data · check VPN';
+                    return;
+                }
+
+                document.getElementById("apiStatus").innerText = 'sync 30s · live data OK';
+
+                const results = list.map(item => ({
+                    issueNumber: item.issueNumber,
+                    number: item.number,
+                    colour: item.colour,
+                    sb: numberToSB(item.number),
+                    colorClass: getColorClass(item.colour)
+                }));
+
+                const latest = results[0];
+                const latestPeriod = latest.issueNumber;
+
+                if (lastPrediction && latestPeriod !== lastProcessedPeriod) {
+                    const status = (lastPrediction.prediction === latest.sb) ? 'Win' : 'Lose';
+                    predictionHistory.unshift({
+                        period: latestPeriod,
+                        prediction: lastPrediction.prediction,
+                        status: status,
+                        confidence: lastPrediction.confidence
+                    });
+                    if (predictionHistory.length > 50) predictionHistory.pop();
+                }
+                lastProcessedPeriod = latestPeriod;
+
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+                results.slice(0,10).forEach(r => {
+                    tbody.innerHTML += `<tr><td>${r.issueNumber}</td><td>${r.number}</td><td>${r.sb}</td><td><span class="color-dot dot-${r.colorClass}"></span>${r.colour}</td></tr>`;
+                });
+
+                const seq = results.map(r => r.sb);
+
+                const dotDiv = document.getElementById('dotContainer');
+                dotDiv.innerHTML = '';
+                seq.slice(-10).forEach(s => {
+                    const d = document.createElement('span');
+                    d.className = `dot ${s === 'B' ? 'big' : 'small'}`;
+                    d.innerText = s;
+                    dotDiv.appendChild(d);
+                });
+
+                const combined = combineAlgorithms(seq);
+                lastPrediction = { 
+                    prediction: combined.prediction, 
+                    confidence: combined.confidence,
+                    period: latestPeriod
+                };
+
+                const predText = combined.prediction === 'B' ? 'BIG' : 'SMALL';
+                document.getElementById('predictionValue').innerText = predText;
+                document.getElementById('confidenceSpan').innerText = combined.confidence + '%';
+
+                const predBox = document.getElementById('predictionBox');
+                predBox.className = `prediction-box ${combined.prediction === 'B' ? 'big' : 'small'}`;
+
+                const stats = computeStats();
+                document.getElementById('longestWin').innerText = stats.longestWin;
+                document.getElementById('longestLose').innerText = stats.longestLose;
+                document.getElementById('winRateStat').innerText = stats.winRate + '%';
+                document.getElementById('totalPreds').innerText = stats.total;
+                document.getElementById('winRateDisplay').innerText = stats.winRate;
+
+                const patternUl = document.getElementById('patternList');
+                patternUl.innerHTML = '';
+                if (combined.algos && combined.algos.length > 0) {
+                    combined.algos.forEach((a, idx) => {
+                        const li = document.createElement('li');
+                        const algoName = `Algo ${idx+1}`;
+                        li.innerHTML = `<span>${algoName}</span> <span class="pattern-bias">${a.bias === 'B' ? 'BIG' : 'SMALL'}</span>`;
+                        if (a.bias === combined.prediction) li.classList.add('active');
+                        patternUl.appendChild(li);
+                    });
+                } else {
+                    patternUl.innerHTML = '<li>no strong patterns</li>';
+                }
+
+                const badge = document.getElementById('floatBadge');
+                if (badge) {
+                    badge.innerText = `⚡ ${predText}`;
+                    badge.className = `prediction-float badge-${combined.prediction === 'B' ? 'big' : 'small'}`;
+                }
+            }
+
+            async function fetchResults() {
+                try {
+                    const res = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: headers,
+                        body: JSON.stringify(requestData)
+                    });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const json = await res.json();
+                    updateUI(json);
+
+                    const now = new Date();
+                    const sec = now.getSeconds();
+                    const delay = (30 - (sec % 30)) * 1000;
+                    setTimeout(() => {
+                        fetchResults();
+                        setInterval(fetchResults, 30000);
+                    }, delay);
+                } catch (err) {
+                    console.warn("API error:", err);
+                    document.getElementById("tableBody").innerHTML = '<tr><td colspan="4" class="error-message">⚠️ Cannot fetch data – VPN may be needed</td></tr>';
+                    document.getElementById("apiStatus").innerText = 'connection failed · check VPN';
+                    setTimeout(fetchResults, 10000);
+                }
+            }
+
+            // Mode toggle
+            const hackContent = document.getElementById('hackContent');
+            const gameContent = document.getElementById('gameContent');
+            const btnHack = document.getElementById('btnHack');
+            const btnGame = document.getElementById('btnGame');
+
+            function setHackMode() {
+                btnHack.classList.add('active');
+                btnGame.classList.remove('active');
+                hackContent.classList.remove('hidden');
+                gameContent.classList.add('hidden');
+            }
+
+            function setGameMode() {
+                btnGame.classList.add('active');
+                btnHack.classList.remove('active');
+                hackContent.classList.add('hidden');
+                gameContent.classList.remove('hidden');
+            }
+
+            btnHack.addEventListener('click', setHackMode);
+            btnGame.addEventListener('click', setGameMode);
+
+            fetchResults();
+        })();
+    </script>
+</body>
+</html>dy>
+</html>
